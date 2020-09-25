@@ -1,0 +1,17 @@
+version: 2.1
+
+jobs:
+  test:
+    docker:
+      - image: themattrix/tox
+    steps:
+      - checkout
+      - run:
+          name: Running tests
+          command: tox
+
+workflows:
+  version: 2
+  test:
+    jobs:
+      - test
