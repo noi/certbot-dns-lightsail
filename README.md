@@ -11,7 +11,7 @@ This plugin proves you have control over a domain by DNS-01 challenge to the Ama
 ### Installation
 Install this plugin using `pip`:
 ```
-pip install git+https://github.com/noi/certbot-dns-lightsail.git
+pip install certbot-dns-lightsail
 ```
 
 ### Usage
