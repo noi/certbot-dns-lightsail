@@ -1,4 +1,7 @@
+import os
+
 import setuptools
+
 
 with open('README.md', 'r') as readme:
     long_description = readme.read()
@@ -63,7 +66,7 @@ entry_points = {
 
 setuptools.setup(
     name='certbot-dns-lightsail',
-    version='0.0.0',
+    version=os.getenv('PACKAGE_VERSION', '0.0.0'),
     author='Nobuki Fujii',
     description='Amazon Lightsail DNS Authenticator Plugin for Certbot',
     long_description=long_description,
