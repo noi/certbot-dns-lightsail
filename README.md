@@ -5,7 +5,7 @@ This plugin proves you have control over a domain by DNS-01 challenge to the Ama
 - `--authenticator dns-lightsail`
   - Use this plugin as an authenticator. (required)
 - `--dns-lightsail-propagation-seconds ${value}`
-  - The number of seconds to wait for DNS to propagate before asking the ACME server to verify the DNS record. (default: 65, The default TTL for Amazon Lightsail DNS records is 60 seconds so I recommend to set a value greater than it)
+  - The number of seconds to wait for DNS to propagate before asking the ACME server to verify the DNS record. (default: 60, The default TTL for Amazon Lightsail DNS records is 60 seconds so I recommend to set a value greater than it)
 
 ## Getting Started
 ### Installation
