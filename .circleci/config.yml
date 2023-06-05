@@ -6,6 +6,18 @@ executors:
       - image: circleci/python:3.8
 
 commands:
+  build:
+    parameters:
+      version:
+        type: string
+    steps:
+      - run:
+          name: Building package
+          command: |
+            python3 -m pip install -U setuptools wheel twine
+            export PACKAGE_VERSION="<< parameters.version >>"
+            python3 setup.py sdist bdist_wheel
+            python3 -m twine check dist/*
   publish:
     parameters:
       repository:
@@ -14,16 +26,10 @@ commands:
         default: "pypi"
       token:
         type: string
-      version:
-        type: string
     steps:
       - run:
           name: Publishing package
           command: |
-            python3 -m pip install -U setuptools wheel twine
-            export PACKAGE_VERSION="<< parameters.version >>"
-            python3 setup.py sdist bdist_wheel
-            python3 -m twine check dist/*
             export TWINE_REPOSITORY="<< parameters.repository >>"
             export TWINE_USERNAME="__token__"
             export TWINE_PASSWORD="<< parameters.token >>"
@@ -41,50 +47,50 @@ jobs:
       - run:
           name: Running tests
           command: tox
+  test-build:
+    executor: python3
+    steps:
+      - checkout
+      - build:
+          version: "0.0.0"
   test-publish:
     executor: python3
     steps:
       - checkout
+      - build:
+          version: "${CIRCLE_TAG:1}.dev`date -u '+%Y%m%d%H%M%S'`"
       - publish:
           repository: testpypi
           token: "${TEST_PYPI_TOKEN}"
-          version: "${CIRCLE_TAG:1}.dev`date -u '+%Y%m%d%H%M%S'`"
   publish:
     executor: python3
     steps:
       - checkout
+      - build:
+          version: "${CIRCLE_TAG:1}"
       - publish:
           token: "${PYPI_TOKEN}"
-          version: "${CIRCLE_TAG:1}"
 
 workflows:
   version: 2
-  test-and-publish:
+  test:
     jobs:
-      - test:
-          filters:
-            tags:
-              only: /v[0-9]+(\.[0-9]+){2}/
+      - test
+      - test-build
+  publish:
+    when:
+      matches:
+        pattern: '^v[0-9]+(\.[0-9]+){2}$'
+        value: << pipeline.git.tag >>
+    jobs:
+      - test
       - test-publish:
           requires:
             - test
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /.*/
       - hold:
           type: approval
           requires:
             - test
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /.*/
       - publish:
           requires:
             - hold
-          filters:
-            tags:
-              only: /.*/
