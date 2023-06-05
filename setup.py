@@ -35,7 +35,9 @@ classifiers = [
 ]
 
 install_requires = [
-    'certbot>=1.8.0',
+    'certbot==1.8.0',
+    'acme==1.8.0',
+    'urllib3<2',
     'boto3>=1.14.59',
     'zope.interface>=5.1.0',
 ]
