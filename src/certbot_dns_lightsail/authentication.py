@@ -16,7 +16,7 @@ class Authenticator(dns_common.DNSAuthenticator):
     def __init__(
         self,
         config: configuration.NamespaceConfig,
-        name: str
+        name: str,
     ) -> None:
         super().__init__(config, name)
         self._client = _LightsailClient()
@@ -25,7 +25,7 @@ class Authenticator(dns_common.DNSAuthenticator):
     def add_parser_arguments(
         cls,
         add: typing.Callable[..., None],
-        default_propagation_seconds: int = 60
+        default_propagation_seconds: int = 60,
     ) -> None:
         super().add_parser_arguments(add, default_propagation_seconds)
 
@@ -36,7 +36,7 @@ class Authenticator(dns_common.DNSAuthenticator):
         self,
         domain: str,
         validation_domain_name: str,
-        validation: str
+        validation: str,
     ) -> None:
         try:
             self._client.create_txt_record(
