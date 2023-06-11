@@ -26,8 +26,7 @@ certbot_version_restrictions = '>=2.6.0,<3'
 install_requires = [
     f'certbot{certbot_version_restrictions}',
     f'acme{certbot_version_restrictions}',
-    'urllib3<2',
-    'boto3>=1.26.151',
+    'boto3>=1.26.151,<2',
 ]
 
 dev_extras = [
