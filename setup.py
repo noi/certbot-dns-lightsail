@@ -34,9 +34,11 @@ classifiers = [
     'License :: OSI Approved :: MIT License',
 ]
 
+certbot_version_restrictions = '>=2.6.0,<3'
+
 install_requires = [
-    'certbot==1.8.0',
-    'acme==1.8.0',
+    f'certbot{certbot_version_restrictions}',
+    f'acme{certbot_version_restrictions}',
     'urllib3<2',
     'boto3>=1.14.59',
     'zope.interface>=5.1.0',
