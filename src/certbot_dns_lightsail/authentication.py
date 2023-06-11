@@ -1,6 +1,7 @@
-import boto3
 import logging
 import typing
+
+import boto3
 
 from certbot import configuration
 from certbot import errors
