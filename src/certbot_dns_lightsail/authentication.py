@@ -8,34 +8,63 @@ from certbot.plugins import dns_common
 
 logger = logging.getLogger(__name__)
 
+
 class Authenticator(dns_common.DNSAuthenticator):
     description = 'This plugin proves you have control over a domain ' \
         'by DNS-01 challenge to the Amazon Lightsail DNS.'
 
-    def __init__(self, config: configuration.NamespaceConfig, name: str) -> None:
+    def __init__(
+        self,
+        config: configuration.NamespaceConfig,
+        name: str
+    ) -> None:
         super().__init__(config, name)
         self._client = _LightsailClient()
 
     @classmethod
-    def add_parser_arguments(cls, add: typing.Callable[..., None], default_propagation_seconds: int = 60) -> None:
+    def add_parser_arguments(
+        cls,
+        add: typing.Callable[..., None],
+        default_propagation_seconds: int = 60
+    ) -> None:
         super().add_parser_arguments(add, default_propagation_seconds)
 
     def more_info(self):
         return self.description
 
-    def _perform(self, domain: str, validation_domain_name: str, validation: str) -> None:
+    def _perform(
+        self,
+        domain: str,
+        validation_domain_name: str,
+        validation: str
+    ) -> None:
         try:
             self._client.create_txt_record(
-                domain, validation_domain_name, validation)
+                domain,
+                validation_domain_name,
+                validation,
+            )
         except Exception as e:
-            raise errors.PluginError(f'Failed to create TXT record ({validation_domain_name}): {e}')
+            raise errors.PluginError(
+                f'Failed to create TXT record ({validation_domain_name}): {e}'
+            )
 
-    def _cleanup(self, domain: str, validation_domain_name: str, validation: str) -> None:
+    def _cleanup(
+        self,
+        domain: str,
+        validation_domain_name: str,
+        validation: str,
+    ) -> None:
         try:
             self._client.delete_txt_record(
-                domain, validation_domain_name, validation)
+                domain,
+                validation_domain_name,
+                validation,
+            )
         except Exception as e:
-            logger.error(f'Failed to delete TXT record ({validation_domain_name}): {e}')
+            logger.error(
+                f'Failed to delete TXT record ({validation_domain_name}): {e}'
+            )
 
     def _setup_credentials(self) -> None:
         pass
@@ -52,7 +81,7 @@ class _LightsailClient:
                 'type': 'TXT',
                 'name': name,
                 'target': f'"{value}"',
-            }
+            },
         )
 
     def delete_txt_record(self, domain: str, name: str, value: str) -> None:
@@ -62,5 +91,5 @@ class _LightsailClient:
                 'type': 'TXT',
                 'name': name,
                 'target': f'"{value}"',
-            }
+            },
         )

@@ -5,7 +5,10 @@ from certbot.plugins import dns_test_common
 from certbot.tests import util as test_util
 
 
-class AuthenticatorTest(unittest.TestCase, dns_test_common.BaseAuthenticatorTest):
+class AuthenticatorTest(
+    unittest.TestCase,
+    dns_test_common.BaseAuthenticatorTest
+):
     def setUp(self):
         from certbot_dns_lightsail.authentication import Authenticator
         super().setUp()
