@@ -1,5 +1,4 @@
 import os
-
 import setuptools
 
 
@@ -11,22 +10,9 @@ project_urls = {
     'Amazon Lightsail': 'https://aws.amazon.com/lightsail/',
 }
 
-python_requires = ', '.join([
-    '>=2.7',
-    '!=3.0.*',
-    '!=3.1.*',
-    '!=3.2.*',
-    '!=3.3.*',
-    '!=3.4.*',
-    '!=3.5.*',
-])
-
 classifiers = [
     'Programming Language :: Python',
-    'Programming Language :: Python :: 2',
-    'Programming Language :: Python :: 2.7',
     'Programming Language :: Python :: 3',
-    'Programming Language :: Python :: 3.6',
     'Programming Language :: Python :: 3.7',
     'Programming Language :: Python :: 3.8',
     'Operating System :: POSIX :: Linux',
@@ -34,12 +20,13 @@ classifiers = [
     'License :: OSI Approved :: MIT License',
 ]
 
+certbot_version_restrictions = '>=2.6.0,<3'
+
 install_requires = [
-    'certbot==1.8.0',
-    'acme==1.8.0',
-    'urllib3<2',
-    'boto3>=1.14.59',
-    'zope.interface>=5.1.0',
+    f'certbot{certbot_version_restrictions}',
+    f'acme{certbot_version_restrictions}',
+    'boto3>=1.26.151,<2',
+    'urllib3>=1.26.16,<2', # https://github.com/urllib3/urllib3/issues/2168
 ]
 
 dev_extras = [
@@ -50,14 +37,8 @@ dev_extras = [
     'twine',
 ]
 
-dev_py27_extras = [
-    'mock',
-    'parsedatetime==2.5',
-]
-
 extras_require = {
     'dev': dev_extras,
-    'dev:python_version=="2.7"': dev_py27_extras,
 }
 
 entry_points = {
@@ -75,7 +56,7 @@ setuptools.setup(
     long_description_content_type='text/markdown',
     url='https://github.com/noi/certbot-dns-lightsail',
     project_urls=project_urls,
-    python_requires=python_requires,
+    python_requires='>=3.7',
     classifiers=classifiers,
     package_dir={'': 'src'},
     packages=setuptools.find_packages('src'),
