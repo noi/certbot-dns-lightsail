@@ -26,7 +26,7 @@ install_requires = [
     f'certbot{certbot_version_restrictions}',
     f'acme{certbot_version_restrictions}',
     'boto3>=1.26.151,<2',
-    'urllib>=1.26.16,<2', # https://github.com/urllib3/urllib3/issues/2168
+    'urllib3>=1.26.16,<2', # https://github.com/urllib3/urllib3/issues/2168
 ]
 
 dev_extras = [
