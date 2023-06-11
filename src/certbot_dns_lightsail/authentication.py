@@ -29,7 +29,7 @@ class Authenticator(dns_common.DNSAuthenticator):
     ) -> None:
         super().add_parser_arguments(add, default_propagation_seconds)
 
-    def more_info(self):
+    def more_info(self) -> str:
         return self.description
 
     def _perform(
