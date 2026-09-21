@@ -11,33 +11,32 @@ project_urls = {
     'Amazon Lightsail': 'https://aws.amazon.com/lightsail/',
 }
 
-python_requires = '>=3.6'
-
 classifiers = [
     'Programming Language :: Python',
     'Programming Language :: Python :: 3',
     'Programming Language :: Python :: 3 :: Only',
-    'Programming Language :: Python :: 3.6',
-    'Programming Language :: Python :: 3.7',
-    'Programming Language :: Python :: 3.8',
+    'Programming Language :: Python :: 3.10',
+    'Programming Language :: Python :: 3.11',
+    'Programming Language :: Python :: 3.12',
+    'Programming Language :: Python :: 3.13',
+    'Programming Language :: Python :: 3.14',
     'Operating System :: POSIX :: Linux',
     'Environment :: Plugins',
-    'License :: OSI Approved :: MIT License',
 ]
 
+certbot_version_restrictions = '>=5.0.0,<6'
+
 install_requires = [
-    'certbot==1.8.0',
-    'acme==1.8.0',
-    'urllib3<2',
-    'boto3>=1.14.59',
-    'zope.interface>=5.1.0',
+    f'certbot{certbot_version_restrictions}',
+    f'acme{certbot_version_restrictions}',
+    'boto3>=1.40.0',
 ]
 
 dev_extras = [
     'tox',
     'flake8',
     'flake8-import-order',
-    'wheel',
+    'build',
     'twine',
 ]
 
@@ -59,8 +58,9 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://github.com/noi/certbot-dns-lightsail',
+    license='MIT',
     project_urls=project_urls,
-    python_requires=python_requires,
+    python_requires='>=3.10',
     classifiers=classifiers,
     package_dir={'': 'src'},
     packages=setuptools.find_packages('src'),
