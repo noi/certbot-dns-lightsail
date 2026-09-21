@@ -2,7 +2,7 @@
 [![CI](https://github.com/noi/certbot-dns-lightsail/actions/workflows/ci.yml/badge.svg)](https://github.com/noi/certbot-dns-lightsail/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/certbot-dns-lightsail)](https://pypi.org/project/certbot-dns-lightsail/)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/certbot-dns-lightsail)](https://pypi.org/project/certbot-dns-lightsail/)
-[![GitHub - License](https://img.shields.io/github/license/noi/certbot-dns-lightsail)](https://github.com/noi/certbot-dns-lightsail/blob/master/LICENSE)
+[![GitHub - License](https://img.shields.io/github/license/noi/certbot-dns-lightsail)](https://github.com/noi/certbot-dns-lightsail/blob/main/LICENSE)
 
 This plugin proves you have control over a domain by DNS-01 challenge to the Amazon Lightsail DNS.
 
@@ -13,6 +13,10 @@ This plugin proves you have control over a domain by DNS-01 challenge to the Ama
   - The number of seconds to wait for DNS to propagate before asking the ACME server to verify the DNS record. (default: 60, The default TTL for Amazon Lightsail DNS records is 60 seconds so I recommend to set a value greater than it)
 
 ## Getting Started
+### Requirements
+- Python 3.10 or later
+- Certbot 5.0.0 or later
+
 ### Installation
 Install this plugin using `pip`:
 ```
