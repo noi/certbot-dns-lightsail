@@ -25,9 +25,9 @@ jobs:
           python-version: '3.x'
       - name: Build package
         run: |
-          python -m pip install -U setuptools wheel twine
+          python -m pip install -U build twine
           export PACKAGE_VERSION="${GITHUB_REF_NAME#v}"
-          python setup.py sdist bdist_wheel
+          python -m build
           python -m twine check dist/*
       - uses: actions/upload-artifact@v4
         with:
