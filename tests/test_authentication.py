@@ -1,13 +1,8 @@
 from unittest import TestCase
+from unittest.mock import MagicMock
 from certbot.compat import os
 from certbot.plugins.dns_test_common import BaseAuthenticatorTest
 from certbot_dns_lightsail.authentication import Authenticator
-
-import sys
-if sys.version_info[:2] >= (3, 3):
-    from unittest.mock import MagicMock
-else:
-    from mock import MagicMock
 
 
 class AuthenticatorTest(TestCase, BaseAuthenticatorTest):
