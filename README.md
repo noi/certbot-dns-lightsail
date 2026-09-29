@@ -1,5 +1,5 @@
 # Amazon Lightsail DNS Authenticator Plugin for Certbot
-[![CircleCI](https://img.shields.io/circleci/build/github/noi/certbot-dns-lightsail?label=circleci)](https://circleci.com/gh/noi/certbot-dns-lightsail)
+[![CI](https://github.com/noi/certbot-dns-lightsail/actions/workflows/ci.yml/badge.svg)](https://github.com/noi/certbot-dns-lightsail/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/certbot-dns-lightsail)](https://pypi.org/project/certbot-dns-lightsail/)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/certbot-dns-lightsail)](https://pypi.org/project/certbot-dns-lightsail/)
 [![GitHub - License](https://img.shields.io/github/license/noi/certbot-dns-lightsail)](https://github.com/noi/certbot-dns-lightsail/blob/master/LICENSE)
