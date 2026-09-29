@@ -10,14 +10,13 @@ jobs:
   test:
     name: test (${{ matrix.toxenv }})
     runs-on: ubuntu-latest
-    # Python 2.7 / 3.6 / 3.7 are not provided by actions/setup-python on
+    # Python 3.6 / 3.7 are not provided by actions/setup-python on
     # current runners, so each tox env runs in an official python image.
     container: python:${{ matrix.python }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - { toxenv: py27, python: '2.7' }
           - { toxenv: py36, python: '3.6' }
           - { toxenv: py37, python: '3.7' }
           - { toxenv: py38, python: '3.8' }
