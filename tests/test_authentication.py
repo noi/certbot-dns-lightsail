@@ -10,26 +10,54 @@ from certbot.tests import util as test_util
 
 
 class AuthenticatorTest(
-    unittest.TestCase,
+    test_util.TempDirTestCase,
     dns_test_common.BaseAuthenticatorTest,
 ):
     def setUp(self):
         from certbot_dns_lightsail.authentication import Authenticator
         super().setUp()
-        # boto3 requires credentials to construct a client
-        os.environ['AWS_ACCESS_KEY_ID'] = 'dummy'
-        os.environ['AWS_SECRET_ACCESS_KEY'] = 'dummy'
+        patcher = mock.patch(
+            'certbot_dns_lightsail.authentication._LightsailClient',
+        )
+        self.client_class = patcher.start()
+        self.addCleanup(patcher.stop)
         config = mock.MagicMock(
+            dns_lightsail_credentials=None,
             dns_lightsail_propagation_seconds=0,
             dns_lightsail_region='us-east-1',
         )
         self.auth = Authenticator(config, 'dns-lightsail')
-        self.auth._client = mock.MagicMock()
+        self.auth._client = self.client_class.return_value
 
-    def tearDown(self):
-        del os.environ['AWS_ACCESS_KEY_ID']
-        del os.environ['AWS_SECRET_ACCESS_KEY']
-        super().tearDown()
+    def write_credentials(self, values):
+        path = os.path.join(self.tempdir, 'credentials.ini')
+        dns_test_common.write(values, path)
+        self.auth.config.dns_lightsail_credentials = path
+
+    @test_util.patch_display_util()
+    def test_perform_without_credentials(self, unused_mock_get_utility):
+        self.auth.perform([self.achall])
+        self.client_class.assert_called_once_with('us-east-1')
+
+    @test_util.patch_display_util()
+    def test_perform_with_credentials(self, unused_mock_get_utility):
+        self.write_credentials({
+            'dns_lightsail_aws_access_key_id': 'key-id',
+            'dns_lightsail_aws_secret_access_key': 'secret',
+        })
+        self.auth.perform([self.achall])
+        self.client_class.assert_called_once_with(
+            'us-east-1', 'key-id', 'secret',
+        )
+
+    @test_util.patch_display_util()
+    def test_perform_with_incomplete_credentials(
+        self, unused_mock_get_utility,
+    ):
+        self.write_credentials({'dns_lightsail_aws_access_key_id': 'key-id'})
+        with self.assertRaises(errors.PluginError):
+            self.auth.perform([self.achall])
+        self.client_class.assert_not_called()
 
     def test_region_default(self):
         add = mock.MagicMock()
@@ -38,14 +66,11 @@ class AuthenticatorTest(
             'region', default='us-east-1', help=mock.ANY,
         )
 
-    @mock.patch('certbot_dns_lightsail.authentication.boto3')
-    def test_region(self, boto3):
-        from certbot_dns_lightsail.authentication import Authenticator
-        config = mock.MagicMock(dns_lightsail_region='us-west-2')
-        Authenticator(config, 'dns-lightsail')
-        boto3.client.assert_called_once_with(
-            'lightsail', region_name='us-west-2',
-        )
+    @test_util.patch_display_util()
+    def test_region(self, unused_mock_get_utility):
+        self.auth.config.dns_lightsail_region = 'us-west-2'
+        self.auth.perform([self.achall])
+        self.client_class.assert_called_once_with('us-west-2')
 
     @test_util.patch_display_util()
     def test_perform(self, unused_mock_get_utility):
@@ -98,6 +123,24 @@ class LightsailClientTest(unittest.TestCase):
             {'domains': [{'name': name} for name in names]}
             for names in pages
         ]
+
+    def test_default_credentials(self):
+        self.boto3.client.assert_called_once_with(
+            'lightsail',
+            region_name='us-east-1',
+            aws_access_key_id=None,
+            aws_secret_access_key=None,
+        )
+
+    def test_explicit_credentials(self):
+        from certbot_dns_lightsail.authentication import _LightsailClient
+        _LightsailClient('us-east-1', 'key-id', 'secret')
+        self.boto3.client.assert_called_with(
+            'lightsail',
+            region_name='us-east-1',
+            aws_access_key_id='key-id',
+            aws_secret_access_key='secret',
+        )
 
     def assert_entry(self, method, domain_name):
         method.assert_called_once_with(
