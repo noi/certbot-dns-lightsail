@@ -2,6 +2,9 @@
 Versions follow [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Fixed
+- Support subdomains of a Lightsail domain (e.g. `sub.example.com` in the `example.com` domain); this requires the `lightsail:GetDomains` permission ([#3](https://github.com/noi/certbot-dns-lightsail/issues/3))
+
 ### Security
 - Require urllib3 2.5.0 or later to exclude versions affected by CVE-2025-50181 (urllib3 is a transitive dependency via boto3/botocore and requests)
 
