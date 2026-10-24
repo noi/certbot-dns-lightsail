@@ -1,6 +1,8 @@
 import unittest
 from unittest import mock
 
+from botocore.exceptions import ClientError
+
 from certbot import errors
 from certbot.compat import os
 from certbot.plugins import dns_test_common
@@ -61,3 +63,105 @@ class AuthenticatorTest(
         ) as cm:
             self.auth.cleanup([self.achall])
         self.assertIn('boom', cm.output[0])
+
+
+class LightsailClientTest(unittest.TestCase):
+    def setUp(self):
+        from certbot_dns_lightsail.authentication import _LightsailClient
+        patcher = mock.patch('certbot_dns_lightsail.authentication.boto3')
+        self.boto3 = patcher.start()
+        self.addCleanup(patcher.stop)
+        self.client = _LightsailClient()
+        self.boto3_client = self.boto3.client.return_value
+        self.set_domains([['example.com']])
+
+    def set_domains(self, pages):
+        paginator = self.boto3_client.get_paginator.return_value
+        paginator.paginate.return_value = [
+            {'domains': [{'name': name} for name in names]}
+            for names in pages
+        ]
+
+    def assert_entry(self, method, domain_name):
+        method.assert_called_once_with(
+            domainName=domain_name,
+            domainEntry={
+                'type': 'TXT',
+                'name': '_acme-challenge.sub.example.com',
+                'target': '"value"',
+            },
+        )
+
+    def test_create_txt_record(self):
+        self.client.create_txt_record(
+            'example.com', '_acme-challenge.example.com', 'value',
+        )
+        self.boto3_client.create_domain_entry.assert_called_once_with(
+            domainName='example.com',
+            domainEntry={
+                'type': 'TXT',
+                'name': '_acme-challenge.example.com',
+                'target': '"value"',
+            },
+        )
+
+    def test_create_txt_record_subdomain(self):
+        self.client.create_txt_record(
+            'sub.example.com', '_acme-challenge.sub.example.com', 'value',
+        )
+        self.assert_entry(self.boto3_client.create_domain_entry, 'example.com')
+
+    def test_delete_txt_record_subdomain(self):
+        self.client.delete_txt_record(
+            'sub.example.com', '_acme-challenge.sub.example.com', 'value',
+        )
+        self.assert_entry(self.boto3_client.delete_domain_entry, 'example.com')
+
+    def test_closest_domain_is_preferred(self):
+        self.set_domains([['example.com', 'sub.example.com']])
+        self.client.create_txt_record(
+            'sub.example.com', '_acme-challenge.sub.example.com', 'value',
+        )
+        self.assert_entry(
+            self.boto3_client.create_domain_entry, 'sub.example.com',
+        )
+
+    def test_domains_across_pages(self):
+        self.set_domains([['example.org'], ['example.com']])
+        self.client.create_txt_record(
+            'sub.example.com', '_acme-challenge.sub.example.com', 'value',
+        )
+        self.assert_entry(self.boto3_client.create_domain_entry, 'example.com')
+
+    def test_domain_not_found(self):
+        self.set_domains([['example.org']])
+        with self.assertRaises(errors.PluginError):
+            self.client.create_txt_record(
+                'sub.example.com', '_acme-challenge.sub.example.com', 'value',
+            )
+        self.boto3_client.create_domain_entry.assert_not_called()
+
+    def test_list_domains_access_denied(self):
+        paginator = self.boto3_client.get_paginator.return_value
+        paginator.paginate.side_effect = ClientError(
+            {'Error': {'Code': 'AccessDeniedException'}}, 'GetDomains',
+        )
+        with self.assertLogs(
+            'certbot_dns_lightsail.authentication', level='WARNING',
+        ):
+            self.client.create_txt_record(
+                'sub.example.com', '_acme-challenge.sub.example.com', 'value',
+            )
+        self.assert_entry(
+            self.boto3_client.create_domain_entry, 'sub.example.com',
+        )
+
+    def test_list_domains_error(self):
+        paginator = self.boto3_client.get_paginator.return_value
+        paginator.paginate.side_effect = ClientError(
+            {'Error': {'Code': 'ServiceException'}}, 'GetDomains',
+        )
+        with self.assertRaises(ClientError):
+            self.client.create_txt_record(
+                'sub.example.com', '_acme-challenge.sub.example.com', 'value',
+            )
