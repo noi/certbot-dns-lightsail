@@ -22,7 +22,7 @@ class Authenticator(dns_common.DNSAuthenticator):
         name: str,
     ) -> None:
         super().__init__(config, name)
-        self._client = _LightsailClient()
+        self._client = _LightsailClient(self.conf('region'))
 
     @classmethod
     def add_parser_arguments(
@@ -31,6 +31,13 @@ class Authenticator(dns_common.DNSAuthenticator):
         default_propagation_seconds: int = 60,
     ) -> None:
         super().add_parser_arguments(add, default_propagation_seconds)
+        # Lightsail DNS APIs are only available in us-east-1, so the default
+        # takes precedence over the region in the user's AWS settings
+        add(
+            'region',
+            default='us-east-1',
+            help='AWS region for Lightsail DNS APIs.',
+        )
 
     def more_info(self) -> str:
         return self.description
@@ -74,8 +81,8 @@ class Authenticator(dns_common.DNSAuthenticator):
 
 
 class _LightsailClient:
-    def __init__(self) -> None:
-        self._client = boto3.client('lightsail')
+    def __init__(self, region_name: str) -> None:
+        self._client = boto3.client('lightsail', region_name=region_name)
 
     def create_txt_record(self, domain: str, name: str, value: str) -> None:
         self._client.create_domain_entry(

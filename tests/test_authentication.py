@@ -16,19 +16,36 @@ class AuthenticatorTest(
     def setUp(self):
         from certbot_dns_lightsail.authentication import Authenticator
         super().setUp()
-        # boto3 requires a region and credentials to construct a client
-        os.environ['AWS_DEFAULT_REGION'] = 'us-east-1'
+        # boto3 requires credentials to construct a client
         os.environ['AWS_ACCESS_KEY_ID'] = 'dummy'
         os.environ['AWS_SECRET_ACCESS_KEY'] = 'dummy'
-        config = mock.MagicMock(dns_lightsail_propagation_seconds=0)
+        config = mock.MagicMock(
+            dns_lightsail_propagation_seconds=0,
+            dns_lightsail_region='us-east-1',
+        )
         self.auth = Authenticator(config, 'dns-lightsail')
         self.auth._client = mock.MagicMock()
 
     def tearDown(self):
-        del os.environ['AWS_DEFAULT_REGION']
         del os.environ['AWS_ACCESS_KEY_ID']
         del os.environ['AWS_SECRET_ACCESS_KEY']
         super().tearDown()
+
+    def test_region_default(self):
+        add = mock.MagicMock()
+        self.auth.add_parser_arguments(add)
+        add.assert_any_call(
+            'region', default='us-east-1', help=mock.ANY,
+        )
+
+    @mock.patch('certbot_dns_lightsail.authentication.boto3')
+    def test_region(self, boto3):
+        from certbot_dns_lightsail.authentication import Authenticator
+        config = mock.MagicMock(dns_lightsail_region='us-west-2')
+        Authenticator(config, 'dns-lightsail')
+        boto3.client.assert_called_once_with(
+            'lightsail', region_name='us-west-2',
+        )
 
     @test_util.patch_display_util()
     def test_perform(self, unused_mock_get_utility):
@@ -71,7 +88,7 @@ class LightsailClientTest(unittest.TestCase):
         patcher = mock.patch('certbot_dns_lightsail.authentication.boto3')
         self.boto3 = patcher.start()
         self.addCleanup(patcher.stop)
-        self.client = _LightsailClient()
+        self.client = _LightsailClient('us-east-1')
         self.boto3_client = self.boto3.client.return_value
         self.set_domains([['example.com']])
 

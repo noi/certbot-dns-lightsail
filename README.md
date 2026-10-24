@@ -34,7 +34,9 @@ sudo ln -s /opt/certbot/bin/certbot /usr/bin/certbot
 If Certbot is already installed with `snap`, remove it first with `sudo snap remove certbot`.
 
 ### Usage
-This plugin requires AWS region and credential settings before it can be used. And the region must be `us-east-1`.
+This plugin requires AWS credential settings before it can be used.
+
+It calls Lightsail DNS APIs in `us-east-1`, where they are available, regardless of the region in your AWS settings. Use `--dns-lightsail-region` to change it.
 
 #### 1. Create Access Key
 Create an access key using IAM policy below:
@@ -64,10 +66,6 @@ Create an access key using IAM policy below:
 #### 2. Create Setting Files
 Create setting files below:
 ```
-# ~/.aws/config
-[default]
-region=us-east-1
-
 # ~/.aws/credentials
 [default]
 aws_access_key_id=${YOUR-ACCESS-KEY-ID}
