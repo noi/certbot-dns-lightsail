@@ -1,7 +1,7 @@
 # Changelog
 Versions follow [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.0] - 2026-09-29
+## [0.2.0] - 2026-10-24
 ### Changed
 - Support Certbot 5.x (`certbot>=5.0.0,<6`, `acme>=5.0.0,<6`); the previous release was pinned to `certbot==1.8.0`
 - Require Python 3.10 or later
