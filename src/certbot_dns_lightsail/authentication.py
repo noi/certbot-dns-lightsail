@@ -3,6 +3,8 @@ from typing import Callable
 
 import boto3
 
+from botocore.exceptions import ClientError
+
 from certbot import configuration
 from certbot import errors
 from certbot.plugins import dns_common
@@ -77,7 +79,7 @@ class _LightsailClient:
 
     def create_txt_record(self, domain: str, name: str, value: str) -> None:
         self._client.create_domain_entry(
-            domainName=domain,
+            domainName=self._find_domain_name(domain),
             domainEntry={
                 'type': 'TXT',
                 'name': name,
@@ -87,10 +89,35 @@ class _LightsailClient:
 
     def delete_txt_record(self, domain: str, name: str, value: str) -> None:
         self._client.delete_domain_entry(
-            domainName=domain,
+            domainName=self._find_domain_name(domain),
             domainEntry={
                 'type': 'TXT',
                 'name': name,
                 'target': f'"{value}"',
             },
+        )
+
+    def _find_domain_name(self, domain: str) -> str:
+        # the closest enclosing Lightsail domain (DNS zone) of the given name
+        domain_names = set()
+        paginator = self._client.get_paginator('get_domains')
+        try:
+            for page in paginator.paginate():
+                domain_names.update(d['name'] for d in page['domains'])
+        except ClientError as e:
+            if e.response['Error']['Code'] != 'AccessDeniedException':
+                raise
+            # keep working with policies that predate lightsail:GetDomains
+            logger.warning(
+                'Not allowed to list Lightsail domains; using %s as is. '
+                'Allow lightsail:GetDomains to use subdomains.', domain,
+            )
+            return domain
+
+        for guess in dns_common.base_domain_name_guesses(domain):
+            if guess in domain_names:
+                return guess
+
+        raise errors.PluginError(
+            f'Unable to find a Lightsail domain for {domain}'
         )

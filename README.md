@@ -49,10 +49,17 @@ Create an access key using IAM policy below:
                 "lightsail:DeleteDomainEntry"
             ],
             "Resource": "arn:aws:lightsail:us-east-1:${YOUR-ACCOUNT-ID}:Domain/${YOUR-DOMAIN-ID}"
+        },
+        {
+            "Effect": "Allow",
+            "Action": "lightsail:GetDomains",
+            "Resource": "*"
         }
     ]
 }
 ```
+
+`lightsail:GetDomains` is used to find the Lightsail domain that contains each requested name (e.g. `example.com` for `sub.example.com`). Without it, each requested name itself must be a Lightsail domain.
 
 #### 2. Create Setting Files
 Create setting files below:
