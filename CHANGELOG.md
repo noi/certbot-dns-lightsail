@@ -4,6 +4,7 @@ Versions follow [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html)
 ## [Unreleased]
 ### Added
 - Option `--dns-lightsail-region` (default: `us-east-1`); the region in AWS settings is no longer required nor used ([#1](https://github.com/noi/certbot-dns-lightsail/issues/1))
+- Option `--dns-lightsail-credentials` to read AWS credentials from an INI file (`dns_lightsail_aws_access_key_id`, `dns_lightsail_aws_secret_access_key`); without it, credentials are looked up as before ([#2](https://github.com/noi/certbot-dns-lightsail/issues/2))
 
 ### Fixed
 - Support subdomains of a Lightsail domain (e.g. `sub.example.com` in the `example.com` domain); this requires the `lightsail:GetDomains` permission ([#3](https://github.com/noi/certbot-dns-lightsail/issues/3))
