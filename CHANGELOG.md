@@ -1,7 +1,7 @@
 # Changelog
 Versions follow [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.3.0] - 2026-10-24
 ### Added
 - Option `--dns-lightsail-region` (default: `us-east-1`); the region in AWS settings is no longer required nor used ([#1](https://github.com/noi/certbot-dns-lightsail/issues/1))
 - Option `--dns-lightsail-credentials` to read AWS credentials from an INI file (`dns_lightsail_aws_access_key_id`, `dns_lightsail_aws_secret_access_key`); without it, credentials are looked up as before ([#2](https://github.com/noi/certbot-dns-lightsail/issues/2))
@@ -27,6 +27,6 @@ Versions follow [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html)
 - Authenticator `dns-lightsail` (`--authenticator dns-lightsail`)
 - Option `--dns-lightsail-propagation-seconds` (default: 60)
 
-[Unreleased]: https://github.com/noi/certbot-dns-lightsail/compare/v0.2.0...HEAD
+[0.3.0]: https://pypi.org/project/certbot-dns-lightsail/0.3.0/
 [0.2.0]: https://pypi.org/project/certbot-dns-lightsail/0.2.0/
 [0.1.0]: https://pypi.org/project/certbot-dns-lightsail/0.1.0/
