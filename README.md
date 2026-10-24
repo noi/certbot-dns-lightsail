@@ -18,10 +18,20 @@ This plugin proves you have control over a domain by DNS-01 challenge to the Ama
 - Certbot 5.0.0 or later
 
 ### Installation
-Install this plugin using `pip`:
+Install this plugin using `pip` into the same Python environment as Certbot:
 ```
 pip install certbot-dns-lightsail
 ```
+
+This plugin is not available as a snap, so Certbot installed with `snap` cannot find it.
+Instead, install Certbot and this plugin together into a virtual environment, as described in [Certbot's pip instructions](https://certbot.eff.org/instructions?ws=other&os=pip):
+```sh
+sudo python3 -m venv /opt/certbot/
+sudo /opt/certbot/bin/pip install --upgrade pip
+sudo /opt/certbot/bin/pip install certbot certbot-dns-lightsail
+sudo ln -s /opt/certbot/bin/certbot /usr/bin/certbot
+```
+If Certbot is already installed with `snap`, remove it first with `sudo snap remove certbot`.
 
 ### Usage
 This plugin requires AWS region and credential settings before it can be used. And the region must be `us-east-1`.
