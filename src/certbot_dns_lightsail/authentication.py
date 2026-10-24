@@ -1,5 +1,6 @@
 import logging
 from typing import Callable
+from typing import Optional
 
 import boto3
 
@@ -22,7 +23,8 @@ class Authenticator(dns_common.DNSAuthenticator):
         name: str,
     ) -> None:
         super().__init__(config, name)
-        self._client = _LightsailClient(self.conf('region'))
+        self.credentials: Optional[dns_common.CredentialsConfiguration] = None
+        self._client: Optional[_LightsailClient] = None
 
     @classmethod
     def add_parser_arguments(
@@ -37,6 +39,12 @@ class Authenticator(dns_common.DNSAuthenticator):
             'region',
             default='us-east-1',
             help='AWS region for Lightsail DNS APIs.',
+        )
+        add(
+            'credentials',
+            help='Path to an INI file with AWS credentials. If omitted, '
+            'credentials are looked up as boto3 does by default '
+            '(environment variables, ~/.aws/credentials, etc.).',
         )
 
     def more_info(self) -> str:
@@ -77,12 +85,42 @@ class Authenticator(dns_common.DNSAuthenticator):
             )
 
     def _setup_credentials(self) -> None:
-        pass
+        # the credentials file is optional; do not prompt for it
+        if self.conf('credentials'):
+            self.credentials = self._configure_credentials(
+                'credentials',
+                'AWS credentials INI file',
+                {
+                    'aws_access_key_id': 'AWS access key ID',
+                    'aws_secret_access_key': 'AWS secret access key',
+                },
+            )
+        self._client = self._get_lightsail_client()
+
+    def _get_lightsail_client(self) -> '_LightsailClient':
+        if self.credentials is None:
+            return _LightsailClient(self.conf('region'))
+        return _LightsailClient(
+            self.conf('region'),
+            self.credentials.conf('aws_access_key_id'),
+            self.credentials.conf('aws_secret_access_key'),
+        )
 
 
 class _LightsailClient:
-    def __init__(self, region_name: str) -> None:
-        self._client = boto3.client('lightsail', region_name=region_name)
+    def __init__(
+        self,
+        region_name: str,
+        aws_access_key_id: Optional[str] = None,
+        aws_secret_access_key: Optional[str] = None,
+    ) -> None:
+        # boto3 falls back to its default credential chain for None
+        self._client = boto3.client(
+            'lightsail',
+            region_name=region_name,
+            aws_access_key_id=aws_access_key_id,
+            aws_secret_access_key=aws_secret_access_key,
+        )
 
     def create_txt_record(self, domain: str, name: str, value: str) -> None:
         self._client.create_domain_entry(

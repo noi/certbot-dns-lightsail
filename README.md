@@ -11,6 +11,8 @@ This plugin proves you have control over a domain by DNS-01 challenge to the Ama
   - Use this plugin as an authenticator. (required)
 - `--dns-lightsail-propagation-seconds ${value}`
   - The number of seconds to wait for DNS to propagate before asking the ACME server to verify the DNS record. (default: 60, The default TTL for Amazon Lightsail DNS records is 60 seconds so I recommend to set a value greater than it)
+- `--dns-lightsail-credentials ${path}`
+  - Path to an INI file with AWS credentials. (optional, If omitted, credentials are looked up in the [boto3 default way](https://docs.aws.amazon.com/boto3/latest/guide/credentials.html) such as environment variables and `~/.aws/credentials`)
 
 ## Getting Started
 ### Requirements
@@ -63,9 +65,21 @@ Create an access key using IAM policy below:
 
 `lightsail:GetDomains` is used to find the Lightsail domain that contains each requested name (e.g. `example.com` for `sub.example.com`). Without it, each requested name itself must be a Lightsail domain.
 
-#### 2. Create Setting Files
-Create setting files below:
+#### 2. Create Credentials File
+Create a credentials file below:
+```ini
+# /etc/letsencrypt/lightsail.ini
+dns_lightsail_aws_access_key_id = ${YOUR-ACCESS-KEY-ID}
+dns_lightsail_aws_secret_access_key = ${YOUR-SECRET-ACCESS-KEY}
 ```
+
+Restrict its permissions so that other users cannot read it:
+```sh
+sudo chmod 600 /etc/letsencrypt/lightsail.ini
+```
+
+Alternatively, omit `--dns-lightsail-credentials` and configure credentials in any way boto3 supports, such as `~/.aws/credentials` or environment variables:
+```ini
 # ~/.aws/credentials
 [default]
 aws_access_key_id=${YOUR-ACCESS-KEY-ID}
@@ -79,6 +93,7 @@ For example, run command below to obtain a certificate using this plugin:
 ```sh
 certbot certonly \
   --authenticator dns-lightsail \
+  --dns-lightsail-credentials /etc/letsencrypt/lightsail.ini \
   --dns-lightsail-propagation-seconds 70 \
   --non-interactive \
   --agree-tos \
