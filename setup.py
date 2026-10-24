@@ -30,6 +30,8 @@ install_requires = [
     f'certbot{certbot_version_restrictions}',
     f'acme{certbot_version_restrictions}',
     'boto3>=1.40.0',
+    # not used directly; floor for GHSA-pq67-6m6q-mj2v (CVE-2025-50181)
+    'urllib3>=2.5.0',
 ]
 
 dev_extras = [
