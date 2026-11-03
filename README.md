@@ -35,6 +35,17 @@ sudo ln -s /opt/certbot/bin/certbot /usr/bin/certbot
 ```
 If Certbot is already installed with `snap`, remove it first with `sudo snap remove certbot`.
 
+#### Docker
+A Docker image based on the [official Certbot image](https://hub.docker.com/r/certbot/certbot) is also available.
+It is tagged as `${CERTBOT-VERSION}-${PLUGIN-VERSION}` (e.g. `5.8.0-0.3.0`) and `latest`:
+```sh
+sudo docker run --rm \
+  -v /etc/letsencrypt:/etc/letsencrypt \
+  -v /var/lib/letsencrypt:/var/lib/letsencrypt \
+  noih/certbot-dns-lightsail:latest \
+  certonly --authenticator dns-lightsail --dns-lightsail-credentials /etc/letsencrypt/lightsail.ini ...
+```
+
 ### Usage
 This plugin requires AWS credential settings before it can be used.
 
