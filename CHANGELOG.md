@@ -1,6 +1,10 @@
 # Changelog
 Versions follow [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+### Added
+- Docker image `noih/certbot-dns-lightsail`, tagged as `${CERTBOT-VERSION}-${PLUGIN-VERSION}` and `latest`
+
 ## [0.3.0] - 2026-10-24
 ### Added
 - Option `--dns-lightsail-region` (default: `us-east-1`); the region in AWS settings is no longer required nor used ([#1](https://github.com/noi/certbot-dns-lightsail/issues/1))
