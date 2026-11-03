@@ -71,56 +71,10 @@ jobs:
       - name: Publish package to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
 
-  # Builds the Docker image from the package just published to PyPI, on top
-  # of the official Certbot image of the newest version the plugin supports.
   docker:
     needs: publish
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-      - name: Resolve versions
-        id: versions
-        run: |
-          plugin_version="${GITHUB_REF_NAME#v}"
-          certbot_version="$(curl -fsS https://pypi.org/pypi/certbot/json | python3 -c '
-          import json, sys
-          releases = json.load(sys.stdin)["releases"]
-          versions = [
-              tuple(map(int, v.split(".")))
-              for v, files in releases.items()
-              if v.startswith("5.") and v.replace(".", "").isdigit() and files
-          ]
-          print(".".join(map(str, max(versions))))
-          ')"
-          echo "plugin=${plugin_version}" >> "$GITHUB_OUTPUT"
-          echo "certbot=${certbot_version}" >> "$GITHUB_OUTPUT"
-      - name: Wait for the package on PyPI
-        run: |
-          for _ in $(seq 60); do
-            curl -fsS -o /dev/null "https://pypi.org/pypi/certbot-dns-lightsail/${{ steps.versions.outputs.plugin }}/json" && exit 0
-            sleep 10
-          done
-          exit 1
-      - uses: docker/metadata-action@v6
-        id: meta
-        with:
-          images: noih/certbot-dns-lightsail
-          tags: |
-            type=raw,value=${{ steps.versions.outputs.certbot }}-${{ steps.versions.outputs.plugin }}
-            type=raw,value=latest
-      - uses: docker/setup-qemu-action@v4
-      - uses: docker/setup-buildx-action@v4
-      - uses: docker/login-action@v4
-        with:
-          username: noih
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - uses: docker/build-push-action@v7
-        with:
-          context: .
-          platforms: linux/amd64,linux/arm64,linux/arm/v6
-          build-args: |
-            CERTBOT_VERSION=${{ steps.versions.outputs.certbot }}
-            CERTBOT_DNS_LIGHTSAIL_VERSION=${{ steps.versions.outputs.plugin }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          push: true
+    uses: ./.github/workflows/docker.yml
+    with:
+      version: ${{ github.ref_name }}
+    secrets:
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}

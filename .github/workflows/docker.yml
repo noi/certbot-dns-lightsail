@@ -1,0 +1,100 @@
+name: Docker
+
+on:
+  # Called by the Publish workflow after a release is published to PyPI.
+  workflow_call:
+    inputs:
+      version:
+        type: string
+        required: true
+      certbot-version:
+        type: string
+        default: ''
+      latest:
+        type: boolean
+        default: true
+    secrets:
+      DOCKERHUB_TOKEN:
+        required: true
+  # Run manually to (re)build an image, e.g. for a new Certbot release.
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'certbot-dns-lightsail version (default: the latest on PyPI)'
+        type: string
+        default: ''
+      certbot-version:
+        description: 'Certbot version (default: the latest 5.x on PyPI)'
+        type: string
+        default: ''
+      latest:
+        description: 'Also tag the image as latest'
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Resolve versions
+        id: versions
+        env:
+          PLUGIN_VERSION: ${{ inputs.version }}
+          CERTBOT_VERSION: ${{ inputs.certbot-version }}
+        run: |
+          plugin_version="${PLUGIN_VERSION#v}"
+          if [ -z "${plugin_version}" ]; then
+            plugin_version="$(curl -fsS https://pypi.org/pypi/certbot-dns-lightsail/json | python3 -c '
+          import json, sys
+          print(json.load(sys.stdin)["info"]["version"])
+          ')"
+          fi
+          certbot_version="${CERTBOT_VERSION#v}"
+          if [ -z "${certbot_version}" ]; then
+            certbot_version="$(curl -fsS https://pypi.org/pypi/certbot/json | python3 -c '
+          import json, sys
+          releases = json.load(sys.stdin)["releases"]
+          versions = [
+              tuple(map(int, v.split(".")))
+              for v, files in releases.items()
+              if v.startswith("5.") and v.replace(".", "").isdigit() and files
+          ]
+          print(".".join(map(str, max(versions))))
+          ')"
+          fi
+          echo "plugin=${plugin_version}" >> "$GITHUB_OUTPUT"
+          echo "certbot=${certbot_version}" >> "$GITHUB_OUTPUT"
+      - name: Wait for the package on PyPI
+        run: |
+          for _ in $(seq 60); do
+            curl -fsS -o /dev/null "https://pypi.org/pypi/certbot-dns-lightsail/${{ steps.versions.outputs.plugin }}/json" && exit 0
+            sleep 10
+          done
+          exit 1
+      - uses: docker/metadata-action@v6
+        id: meta
+        with:
+          images: noih/certbot-dns-lightsail
+          tags: |
+            type=raw,value=${{ steps.versions.outputs.certbot }}-${{ steps.versions.outputs.plugin }}
+            type=raw,value=latest,enable=${{ inputs.latest }}
+      - uses: docker/setup-qemu-action@v4
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/login-action@v4
+        with:
+          username: noih
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - uses: docker/build-push-action@v7
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64,linux/arm/v6
+          build-args: |
+            CERTBOT_VERSION=${{ steps.versions.outputs.certbot }}
+            CERTBOT_DNS_LIGHTSAIL_VERSION=${{ steps.versions.outputs.plugin }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          push: true
