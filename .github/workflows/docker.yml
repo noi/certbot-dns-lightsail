@@ -68,6 +68,15 @@ jobs:
           fi
           echo "plugin=${plugin_version}" >> "$GITHUB_OUTPUT"
           echo "certbot=${certbot_version}" >> "$GITHUB_OUTPUT"
+      - name: Check that the image is not published yet
+        run: |
+          tag="${{ steps.versions.outputs.certbot }}-${{ steps.versions.outputs.plugin }}"
+          status="$(curl -sS -o /dev/null -w '%{http_code}' "https://hub.docker.com/v2/repositories/noih/certbot-dns-lightsail/tags/${tag}")"
+          case "${status}" in
+            404) ;;
+            200) echo "::error::noih/certbot-dns-lightsail:${tag} is already published"; exit 1 ;;
+            *) echo "::error::Unexpected response from Docker Hub: ${status}"; exit 1 ;;
+          esac
       - name: Wait for the package on PyPI
         run: |
           for _ in $(seq 60); do
